@@ -20,7 +20,7 @@ using namespace std;
  * Read arrChar from other process
  * 
 */
-char* ReadArrCharrMem(){}
+//char* ReadArrCharrMem(){}
 
 
 /**
