@@ -38,8 +38,8 @@ void ReadCharMem(HANDLE hProcess){
 
 
     // memory read and error check
-    BOOL rpmReturn2 = ReadProcessMemory(hProcess, (LPVOID)memAddress, &buffer, bufferReadSize, NULL);
-    if(rpmReturn2 == FALSE){
+    BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddress, &buffer, bufferReadSize, NULL);
+    if(rpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
     }
@@ -65,8 +65,8 @@ string ReadStrMem(HANDLE hProcess){
 
 
     // memory read and error check
-    BOOL rpmReturn2 = ReadProcessMemory(hProcess, (LPCVOID)memAddressStr, &strRead, sizeof(strRead), NULL);
-    if(rpmReturn2 == FALSE){
+    BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddressStr, &strRead, sizeof(strRead), NULL);
+    if(rpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
         return "NULL";
@@ -94,8 +94,8 @@ int ReadPtrMem(HANDLE hProcess){
 
 
     // memory read and error check
-    BOOL rpmReturn2 = ReadProcessMemory(hProcess, (LPCVOID)memAddressPtr, &ptrRead, sizeof(ptrRead), NULL);
-    if(rpmReturn2 == FALSE){
+    BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddressPtr, &ptrRead, sizeof(ptrRead), NULL);
+    if(rpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
         return EXIT_FAILURE;
