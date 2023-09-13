@@ -20,7 +20,33 @@ using namespace std;
  * Read arrChar from other process
  * 
 */
-//char* ReadArrCharrMem(){}
+void ReadCharMem(HANDLE hProcess){
+
+    DWORD bufferReadSize;
+    char buffer[CHAR_ARRAY_SIZE]{};
+
+    cout << "How many bytes do you want to read?";
+    cin >> bufferReadSize;
+    cout << "Ready to read " << bufferReadSize << " bytes" << endl;
+
+
+    // Get Memory Address from user 
+    uintptr_t memAddress = 0x0; // Store Memory Address
+    cout << "int: Mem Address to read (in hex): 0x";
+    cin >> hex >> memAddress;
+    cout << "Reading 0x" << hex << uppercase << memAddress << "..." << endl;
+
+
+    // memory read and error check
+    BOOL rpmReturn2 = ReadProcessMemory(hProcess, (LPVOID)memAddress, &buffer, bufferReadSize, NULL);
+    if(rpmReturn2 == FALSE){
+        cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
+        system("pause");
+    }
+    cout << "char buffer: " << buffer << endl;
+}
+
+
 
 
 /**
@@ -121,6 +147,7 @@ int main(){
     int intRead = 0;
     int ptrRead = 0;
     string strRead = "";
+    char arrChar[CHAR_ARRAY_SIZE] = "";
 
     // Get PID from user input
     DWORD pid = 0; // PID of target
@@ -158,13 +185,13 @@ int main(){
             cout << "strRead = " << hex << strRead << endl;
             break;
         case 4:
-            //
-            //cout << "arrChar = " << hex << arrChar << endl;
+            ReadCharMem(hProcess);
             break;
         default:
             return EXIT_FAILURE;
 
     }
+
 
     CloseHandle(hProcess);
     cout << "Press ENTER to quit." << endl;
