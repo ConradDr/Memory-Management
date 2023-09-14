@@ -17,10 +17,39 @@ using namespace std;
 
 /**
  * Function
+ * Get memory address to access
+*/
+uintptr_t GetMemAddress(){
+    uintptr_t memAddress = 0x0; // Store Memory Address
+
+    cout << "Memory Address to read(in hex): 0x";
+    cin >> hex >> memAddress;
+    cout << "Reading 0x" << hex << uppercase << memAddress << "..." << endl;
+
+    return memAddress;
+}
+
+/**
+ * Function
+ * Get memory address to access for writing
+*/
+uintptr_t GetMemAddressWrite(){
+    uintptr_t memAddress = 0x0; // Store Memory Address
+
+    cout << "Memory Address to edit(in hex): 0x";
+    cin >> hex >> memAddress;
+
+    return memAddress;
+}
+
+
+
+/**
+ * Function
  * Read arrChar from other process
  * 
 */
-void ReadCharMem(HANDLE hProcess){
+void ReadCharMem(HANDLE hProcess, uintptr_t memAddress){
 
     DWORD bufferReadSize;
     char buffer[CHAR_ARRAY_SIZE]{};
@@ -28,13 +57,6 @@ void ReadCharMem(HANDLE hProcess){
     cout << "How many bytes do you want to read?";
     cin >> bufferReadSize;
     cout << "Ready to read " << bufferReadSize << " bytes" << endl;
-
-
-    // Get Memory Address from user 
-    uintptr_t memAddress = 0x0; // Store Memory Address
-    cout << "int: Mem Address to read (in hex): 0x";
-    cin >> hex >> memAddress;
-    cout << "Reading 0x" << hex << uppercase << memAddress << "..." << endl;
 
 
     // memory read and error check
@@ -54,15 +76,8 @@ void ReadCharMem(HANDLE hProcess){
  * Read String from other process
  * 
 */
-string ReadStrMem(HANDLE hProcess){
+string ReadStrMem(HANDLE hProcess, uintptr_t memAddressStr){
     string strRead = "";
-
-    // Get Memory Address from user 
-    uintptr_t memAddressStr = 0x0; // Store Memory Address
-    cout << "String: Mem Address to read (in hex): 0x";
-    cin >> hex >> memAddressStr;
-    cout << "Reading 0x" << hex << uppercase << memAddressStr << "..." << endl;
-
 
     // memory read and error check
     BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddressStr, &strRead, sizeof(strRead), NULL);
@@ -81,17 +96,8 @@ string ReadStrMem(HANDLE hProcess){
  * Read Pointer from other process
  * 
 */
-// Read Pointer Func
-int ReadPtrMem(HANDLE hProcess){
+int ReadPtrMem(HANDLE hProcess, uintptr_t memAddressPtr){
     int ptrRead = 0;
-
-    // Get Memory Address from user 
-    uintptr_t memAddressPtr = 0x0; // Store Memory Address
-    cout << "ptr: Mem Address to read (in hex): 0x";
-    cin >> hex >> memAddressPtr;
-    cout << "Reading 0x" << hex << uppercase << memAddressPtr << "..." << endl;
-
-
 
     // memory read and error check
     BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddressPtr, &ptrRead, sizeof(ptrRead), NULL);
@@ -111,17 +117,8 @@ int ReadPtrMem(HANDLE hProcess){
  * Read Integer from other process
  * 
 */
-// Read Integer Func
-int ReadIntMem(HANDLE hProcess){
+int ReadIntMem(HANDLE hProcess, uintptr_t memAddress){
     int intRead = 0; // Store contents of int from other process
-
-    // Get Memory Address from user 
-    uintptr_t memAddress = 0x0; // Store Memory Address
-    cout << "int: Mem Address to read (in hex): 0x";
-    cin >> hex >> memAddress;
-    cout << "Reading 0x" << hex << uppercase << memAddress << "..." << endl;
-
-
 
     // memory read and error check
     BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddress, &intRead, sizeof(int), NULL);
@@ -131,9 +128,55 @@ int ReadIntMem(HANDLE hProcess){
         return EXIT_FAILURE;
     }
 
-
     return intRead;
 }
+
+/**
+ * Function
+ * Write Integer from other process
+ * 
+*/
+void WriteIntMem(HANDLE hProcess, uintptr_t memAddress){
+    int intWrite = 0; // Store contents of int from other process
+
+    cout << "What data do you want to write to buffer? ";
+    cin >> dec >> intWrite;
+
+    // memory read and error check
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &intWrite, sizeof(int), NULL);
+    if(wpmReturn == FALSE){
+        cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
+        system("pause");
+        return;
+    } else {
+        cout << "Int Writte Successful" << endl;
+    }
+
+    return;
+}
+
+
+
+void WritePtrMem(HANDLE hProcess, uintptr_t memAddress){
+    int ptrWrite = 0x0; // Store contents of int from other process
+
+    cout << "What data do you want to write to buffer? 0x0";
+    cin >> hex >> ptrWrite;
+
+    // memory read and error check
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &ptrWrite, sizeof(int), NULL);
+    if(wpmReturn == FALSE){
+        cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
+        system("pause");
+        return;
+    } else {
+        cout << "Ptr Writte Successful" << endl;
+    }
+
+    return;
+}
+
+
 
 
 
@@ -144,53 +187,113 @@ int ReadIntMem(HANDLE hProcess){
 */
 int main(){
 
-    int intRead = 0;
-    int ptrRead = 0;
-    string strRead = "";
+    int intEdit = 0;
+    int ptrEdit = 0;
+    string strEdit = "";
     char arrChar[CHAR_ARRAY_SIZE] = "";
+    int memInteractionType = 0;
+    HANDLE hProcess = NULL;
 
     // Get PID from user input
     DWORD pid = 0; // PID of target
+    
     cout << "PID: ";
     cin >> dec >> pid;
 
-    // Open Process
-    HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, pid);
-    if(hProcess == NULL){ // Fails to get process
-        cout << "OpenProcess Failed. Get last Error = " << dec << GetLastError() << endl;
-        system("pause");
-        return EXIT_FAILURE;
-    }
+    cout << "Do you wish to Read (1) or Write (2)? ";
+    cin >> dec >> memInteractionType;
 
 
-    // Get data type to read
-    DWORD toRead = 0;
-    cout << "| What type of data do you want to read?  | " << endl;
-    cout << "| 1:Int | 2:ptr | 3:String | 4:Char Array | " << endl;
-    cin >> dec >> toRead;
-
-
-    // Read address and display variable
-    switch(toRead){
-        case 1:
-            intRead = ReadIntMem(hProcess);
-            cout << "intRead = " << dec << intRead << endl;
-            break;
-        case 2:
-            ptrRead = ReadPtrMem(hProcess);
-            cout << "ptrRead = " << hex << ptrRead << endl;
-            break;
-        case 3:
-            strRead = ReadStrMem(hProcess);
-            cout << "strRead = " << hex << strRead << endl;
-            break;
-        case 4:
-            ReadCharMem(hProcess);
-            break;
-        default:
+    if(memInteractionType == 1){
+        // Open Process
+        HANDLE hProcess = OpenProcess(PROCESS_VM_READ, FALSE, pid);
+        if(hProcess == NULL){ // Fails to get process
+            cout << "OpenProcess Failed. Get last Error = " << dec << GetLastError() << endl;
+            system("pause");
             return EXIT_FAILURE;
+        }
+
+
+        // Get data type to read
+        DWORD toRead = 0;
+        cout << "|-----------------------------------------| " << endl;
+        cout << "| What type of data do you want to read?  | " << endl;
+        cout << "| 1:Int | 2:ptr | 3:String | 4:Char Array | " << endl;
+        cout << "|-----------------------------------------| " << endl;
+        cin >> dec >> toRead;
+
+
+        // Read address and display variable
+        switch(toRead){
+            case 1:
+                intEdit = ReadIntMem(hProcess, GetMemAddress());
+                cout << "intRead = " << dec << intEdit << endl;
+                break;
+            case 2:
+                ptrEdit = ReadPtrMem(hProcess, GetMemAddress());
+                cout << "ptrRead = " << hex << ptrEdit << endl;
+                break;
+            case 3:
+                strEdit = ReadStrMem(hProcess, GetMemAddress());
+                cout << "strRead = " << hex << strEdit << endl;
+                break;
+            case 4:
+                ReadCharMem(hProcess, GetMemAddress());
+                break;
+            default:
+                return EXIT_FAILURE;
+        }
+
+    } else if(memInteractionType == 2){
+        // Open Process
+        HANDLE hProcess = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, pid);
+        if(hProcess == NULL){ // Fails to get process
+            cout << "OpenProcess Failed. Get last Error = " << dec << GetLastError() << endl;
+            system("pause");
+            return EXIT_FAILURE;
+        }
+
+        // Get data type to read
+        DWORD toWrite = 0;
+        cout << "|-----------------------------------------| " << endl;
+        cout << "| What type of data do you want to write? | " << endl;
+        cout << "| 1:Int | 2:ptr | 3:String | 4:Char Array | " << endl;
+        cout << "|-----------------------------------------| " << endl;
+        cin >> dec >> toWrite;
+
+
+        // Read address and display variable
+        switch(toWrite){
+            case 1:
+                WriteIntMem(hProcess, GetMemAddressWrite());
+                break;
+            case 2:
+                WritePtrMem(hProcess, GetMemAddressWrite());
+                //cout << "ptrWrite = " << hex << ptrEdit << endl;
+                break;
+            case 3:
+                //strEdit = WriteStrMem(hProcess, GetMemAddressWrite());
+                //cout << "strWrite = " << hex << strEdit << endl;
+                break;
+            case 4:
+                //WriteCharMem(hProcess, GetMemAddressWrite());
+                break;
+            default:
+                return EXIT_FAILURE;
+        }
+
+
+
+
+
+
+
 
     }
+
+
+
+    
 
 
     CloseHandle(hProcess);
