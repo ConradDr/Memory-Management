@@ -121,7 +121,7 @@ int ReadIntMem(HANDLE hProcess, uintptr_t memAddress){
     int intRead = 0; // Store contents of int from other process
 
     // memory read and error check
-    BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddress, &intRead, sizeof(int), NULL);
+    BOOL rpmReturn = ReadProcessMemory(hProcess, (LPCVOID)memAddress, &intRead, sizeof(intRead), NULL);
     if(rpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
@@ -133,7 +133,7 @@ int ReadIntMem(HANDLE hProcess, uintptr_t memAddress){
 
 /**
  * Function
- * Write Integer from other process
+ * Write Integer to other process
  * 
 */
 void WriteIntMem(HANDLE hProcess, uintptr_t memAddress){
@@ -143,7 +143,7 @@ void WriteIntMem(HANDLE hProcess, uintptr_t memAddress){
     cin >> dec >> intWrite;
 
     // memory read and error check
-    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &intWrite, sizeof(int), NULL);
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &intWrite, sizeof(intWrite), NULL);
     if(wpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
@@ -156,7 +156,11 @@ void WriteIntMem(HANDLE hProcess, uintptr_t memAddress){
 }
 
 
-
+/**
+ * Function
+ * Write pointer to other process
+ * 
+*/
 void WritePtrMem(HANDLE hProcess, uintptr_t memAddress){
     int ptrWrite = 0x0; // Store contents of int from other process
 
@@ -164,13 +168,37 @@ void WritePtrMem(HANDLE hProcess, uintptr_t memAddress){
     cin >> hex >> ptrWrite;
 
     // memory read and error check
-    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &ptrWrite, sizeof(int), NULL);
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &ptrWrite, sizeof(ptrWrite), NULL);
     if(wpmReturn == FALSE){
         cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
         system("pause");
         return;
     } else {
         cout << "Ptr Writte Successful" << endl;
+    }
+
+    return;
+}
+
+/**
+ * Function
+ * Write string to other process
+ * 
+*/
+void WriteStrMem(HANDLE hProcess, uintptr_t memAddress){
+    string strWrite = ""; // Store contents of int from other process
+
+    cout << "What data do you want to write to buffer? ";
+    cin >> strWrite;
+
+    // memory read and error check
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &strWrite, sizeof(strWrite), NULL);
+    if(wpmReturn == FALSE){
+        cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
+        system("pause");
+        return;
+    } else {
+        cout << "Str Writte Successful" << endl;
     }
 
     return;
@@ -246,7 +274,8 @@ int main(){
 
     } else if(memInteractionType == 2){
         // Open Process
-        HANDLE hProcess = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, pid);
+        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+        //HANDLE hProcess = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, pid);
         if(hProcess == NULL){ // Fails to get process
             cout << "OpenProcess Failed. Get last Error = " << dec << GetLastError() << endl;
             system("pause");
@@ -269,13 +298,11 @@ int main(){
                 break;
             case 2:
                 WritePtrMem(hProcess, GetMemAddressWrite());
-                //cout << "ptrWrite = " << hex << ptrEdit << endl;
                 break;
-            case 3:
-                //strEdit = WriteStrMem(hProcess, GetMemAddressWrite());
-                //cout << "strWrite = " << hex << strEdit << endl;
+            case 3:// NEED TO FIX
+                WriteStrMem(hProcess, GetMemAddressWrite());
                 break;
-            case 4:
+            case 4:// NEED TO FIX
                 //WriteCharMem(hProcess, GetMemAddressWrite());
                 break;
             default:
