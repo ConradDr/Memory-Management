@@ -204,13 +204,49 @@ void WriteStrMem(HANDLE hProcess, uintptr_t memAddress){
     return;
 }
 
+/**
+ * Function
+ * write to arrChar from other process
+ * 
+*/
+void WriteCharMem(HANDLE hProcess, uintptr_t memAddress){
+
+    DWORD bufferWriteSize;
+    char buffer[CHAR_ARRAY_SIZE]{};
+    string bufferToWrite;
+
+    cout << "How many bytes do you want to write? ";
+    cin >> bufferWriteSize;
+    cout << "Ready to read " << bufferWriteSize << " bytes" << endl;
+    cout << "What would you like to write? ";
+    cin >> bufferToWrite;
+    cout << "Ready to write " << bufferToWrite << endl;
+
+    // memory read and error check
+    BOOL wpmReturn = WriteProcessMemory(hProcess, (LPVOID)memAddress, &bufferToWrite, bufferWriteSize, NULL);
+    if(wpmReturn == FALSE){
+        cout << "ReadProcess failed. GetLastError = " << dec << GetLastError() << endl;
+        system("pause");
+        return;
+    } else {
+        cout << "Char Write Successful" << endl;
+        cout << "char buffer: " << buffer << endl;
+    }
+
+
+
+
+
+    return;
+}
+
 
 
 
 
 /**
  * Function
- * Main Function
+ * Main, get user input for selection, handle basic task separation and function calls.
  * 
 */
 int main(){
@@ -274,8 +310,8 @@ int main(){
 
     } else if(memInteractionType == 2){
         // Open Process
-        HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
-        //HANDLE hProcess = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, pid);
+        //HANDLE hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pid);
+        HANDLE hProcess = OpenProcess(PROCESS_VM_WRITE | PROCESS_VM_OPERATION, FALSE, pid);
         if(hProcess == NULL){ // Fails to get process
             cout << "OpenProcess Failed. Get last Error = " << dec << GetLastError() << endl;
             system("pause");
@@ -299,29 +335,16 @@ int main(){
             case 2:
                 WritePtrMem(hProcess, GetMemAddressWrite());
                 break;
-            case 3:// NEED TO FIX
+            case 3:
                 WriteStrMem(hProcess, GetMemAddressWrite());
                 break;
-            case 4:// NEED TO FIX
-                //WriteCharMem(hProcess, GetMemAddressWrite());
+            case 4:
+                WriteCharMem(hProcess, GetMemAddressWrite());
                 break;
             default:
                 return EXIT_FAILURE;
         }
-
-
-
-
-
-
-
-
     }
-
-
-
-    
-
 
     CloseHandle(hProcess);
     cout << "Press ENTER to quit." << endl;
